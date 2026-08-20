@@ -1,169 +1,115 @@
-/* إعدادات عامة */
-body {
-    background-color: #000000;
-    color: #ffffff;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0;
-    padding: 40px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+// قالب النص الجاهز
+function getInitialTemplate(title) {
+    return `المكرم/ [اسم الموظف]،\n\nبناءً على ما تم رصده، نود إفادتكم بوقوع مخالفة ( ${title} ).\nنأمل منكم الالتزام بالأنظمة والتعليمات تفادياً لتطبيق لائحة الجزاءات.\n\nملاحظات إضافية: `;
 }
 
-.header-actions {
-    width: 100%;
-    max-width: 1400px;
-    text-align: left;
-    margin-bottom: 20px;
+// البيانات الأساسية
+const defaultViolationsData = {
+    high: [
+        { title: "إغلاق المعرض والتسبب في تعطيل المبيعات", points: "-15" },
+        { title: "تلاعب في أوقات البريك", points: "-15" },
+        { title: "تلاعب في ساعات العمل", points: "-15" },
+        { title: "عدم تسليم العميل فاتورة مشتريات", points: "-15" },
+        { title: "غياب بدون عذر", points: "-15" }
+    ],
+    medium: [
+        { title: "إهمال الإبلاغ عن أعطال الأجهزة والأنظمة", points: "-7" },
+        { title: "الخروج للبريك بدون تسجيل إذن", points: "-7" },
+        { title: "تجمعات خلال ساعات العمل", points: "-7" },
+        { title: "خروج أكثر من موظف في نفس وقت الاستراحة", points: "-7" },
+        { title: "عدم الالتزام بمعايير خدمة العملاء", points: "-7" },
+        { title: "مخالفة قواعد السلوك والانضباط المهني في مكان العمل", points: "-7" },
+        { title: "وجود الموظف في غير مكان العمل أثناء ساعات العمل", points: "-7" }
+    ],
+    low: [
+        { title: "الإخلال بالمظهر العام للمعرض", points: "-3" },
+        { title: "التأخر عن مواعيد الدوام الرسمية", points: "-3" },
+        { title: "التواجد في المستودع خارج وقت البريك دون مقتضى حاجة", points: "-3" },
+        { title: "تجاوز الوقت المسموح به", points: "-3" },
+        { title: "عدم اكمال نوبة العمل", points: "-3" },
+        { title: "عدم الالتزام بالزي الرسمي أو عدم ارتداء الشال الخاص", points: "-3" },
+        { title: "عدم الالتزام في تنفيذ المهام اليومية", points: "-3" },
+        { title: "عدم الالتزام في مهام الاستقطاب", points: "-3" }
+    ]
+};
+
+let dbData = {};
+
+// دالة تهيئة وبناء قاعدة البيانات المحلية
+function initDatabase() {
+    const storedData = localStorage.getItem('violationsDB');
+    
+    if (storedData) {
+        dbData = JSON.parse(storedData);
+    } else {
+        dbData = JSON.parse(JSON.stringify(defaultViolationsData));
+        for (const category in dbData) {
+            dbData[category].forEach(violation => {
+                violation.text = getInitialTemplate(violation.title);
+            });
+        }
+        localStorage.setItem('violationsDB', JSON.stringify(dbData));
+    }
 }
 
-.reset-btn {
-    background-color: #ff3b30;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 13px;
-    transition: 0.3s;
+// تحديث وحفظ النص عند الكتابة
+function updateText(category, index, newText) {
+    dbData[category][index].text = newText;
+    localStorage.setItem('violationsDB', JSON.stringify(dbData));
 }
 
-.reset-btn:hover {
-    background-color: #cc2a22;
+// دالة لإعادة ضبط النصوص في حال أخطأ المستخدم
+function resetDatabase() {
+    if(confirm("هل أنت متأكد أنك تريد مسح جميع تعديلاتك والعودة للنصوص الافتراضية؟")) {
+        localStorage.removeItem('violationsDB');
+        location.reload(); 
+    }
 }
 
-.dashboard {
-    display: flex;
-    gap: 30px;
-    width: 100%;
-    max-width: 1400px;
+// دالة الطباعة في الصفحة
+function renderList(category, elementId, pointsClass) {
+    const listElement = document.getElementById(elementId);
+    listElement.innerHTML = ''; 
+    
+    dbData[category].forEach((violation, index) => {
+        const li = document.createElement('li');
+        li.className = 'violation-item';
+        
+        li.innerHTML = `
+            <div class="violation-header">
+                <span class="violation-title">${violation.title}</span>
+                <span class="violation-points ${pointsClass}">${violation.points}</span>
+            </div>
+            <div class="editor-container">
+                <textarea spellcheck="false" oninput="updateText('${category}', ${index}, this.value)">${violation.text}</textarea>
+                <button class="copy-btn" onclick="copyText(this)">نسخ المخالفة</button>
+            </div>
+        `;
+        listElement.appendChild(li);
+    });
 }
 
-.column {
-    flex: 1;
+// نسخ النص
+function copyText(button) {
+    const textarea = button.previousElementSibling;
+    const textToCopy = textarea.value;
+
+    navigator.clipboard.writeText(textToCopy).then(() => {
+        const originalText = button.innerText;
+        button.innerText = "تم النسخ بنجاح ✔";
+        button.classList.add("success");
+        
+        setTimeout(() => {
+            button.innerText = originalText;
+            button.classList.remove("success");
+        }, 2000);
+    });
 }
 
-/* تنسيق العناوين والنقاط الملونة */
-h3 {
-    display: flex;
-    align-items: center;
-    font-size: 16px;
-    margin-bottom: 15px;
-    direction: ltr;
-    justify-content: flex-end;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #333;
-}
-
-.dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    margin-left: 8px;
-}
-
-.dot-high { background-color: #ff3b30; }
-.dot-medium { background-color: #ff9500; }
-.dot-low { background-color: #0a84ff; }
-
-/* تنسيق قائمة المخالفات */
-.violation-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    background-color: #1a1a1a;
-    border-radius: 8px;
-    border: 1px solid #333;
-    overflow: hidden;
-}
-
-.violation-item {
-    border-bottom: 1px solid #333;
-    transition: background-color 0.2s ease;
-}
-
-.violation-item:last-child {
-    border-bottom: none;
-}
-
-.violation-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 20px;
-    cursor: pointer;
-}
-
-.violation-title {
-    font-size: 14px;
-    color: #e0e0e0;
-}
-
-.violation-points {
-    font-size: 14px;
-    font-weight: bold;
-}
-
-.points-high { color: #ff3b30; }
-.points-medium { color: #ff9500; }
-.points-low { color: #0a84ff; }
-
-/* صندوق التعديل المخفي */
-.editor-container {
-    display: none;
-    padding: 0 20px 20px 20px;
-    background-color: #222;
-}
-
-.violation-item:hover .editor-container,
-.violation-item:focus-within .editor-container {
-    display: block;
-}
-
-.violation-item:hover, .violation-item:focus-within {
-    background-color: #222;
-}
-
-textarea {
-    width: 100%;
-    background-color: #121212;
-    color: #fff;
-    border: 1px solid #444;
-    border-radius: 5px;
-    padding: 12px;
-    font-family: inherit;
-    font-size: 14px;
-    line-height: 1.6;
-    resize: vertical;
-    min-height: 150px;
-    margin-bottom: 10px;
-    box-sizing: border-box;
-}
-
-textarea:focus {
-    outline: none;
-    border-color: #555;
-    background-color: #1a1a1a;
-}
-
-.copy-btn {
-    background-color: #333;
-    color: #fff;
-    border: 1px solid #555;
-    padding: 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 13px;
-    transition: 0.2s;
-    width: 100%;
-    font-weight: bold;
-}
-
-.copy-btn:hover {
-    background-color: #444;
-}
-
-.copy-btn.success {
-    background-color: #28a745;
-    border-color: #28a745;
-}
+// التشغيل عند فتح الصفحة
+window.onload = () => {
+    initDatabase();
+    renderList('high', 'list-high', 'points-high');
+    renderList('medium', 'list-medium', 'points-medium');
+    renderList('low', 'list-low', 'points-low');
+};
