@@ -62,7 +62,7 @@ function updateText(category, index, newText) {
 function resetDatabase() {
     if(confirm("هل أنت متأكد أنك تريد مسح جميع تعديلاتك والعودة للنصوص الافتراضية؟")) {
         localStorage.removeItem('violationsDB');
-        location.reload(); 
+        location.reload(); // تحديث الصفحة
     }
 }
 
