@@ -1,129 +1,3 @@
-/* إعدادات عامة */
-body {
-    background-color: #000000;
-    color: #ffffff;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0;
-    padding: 40px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.header-actions {
-    width: 100%;
-    max-width: 1400px;
-    text-align: left; /* زر إعادة الضبط في اليسار */
-    margin-bottom: 20px;
-}
-
-.reset-btn {
-    background-color: #ff3b30;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 13px;
-    transition: 0.3s;
-}
-
-.reset-btn:hover {
-    background-color: #cc2a22;
-}
-
-.dashboard {
-    display: flex;
-    gap: 30px;
-    width: 100%;
-    max-width: 1400px;
-}
-
-.column {
-    flex: 1;
-}
-
-/* تنسيق العناوين والنقاط الملونة */
-h3 {
-    display: flex;
-    align-items: center;
-    font-size: 16px;
-    margin-bottom: 15px;
-    direction: ltr;
-    justify-content: flex-end;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #333;
-}
-
-.dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    margin-left: 8px;
-}
-
-.dot-high { background-color: #ff3b30; }
-.dot-medium { background-color: #ff9500; }
-.dot-low { background-color: #0a84ff; }
-
-/* تنسيق قائمة المخالفات */
-.violation-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    background-color: #1a1a1a;
-    border-radius: 8px;
-    border: 1px solid #333;
-    overflow: hidden;
-}
-
-.violation-item {
-    border-bottom: 1px solid #333;
-    transition: background-color 0.2s ease;
-}
-
-.violation-item:last-child {
-    border-bottom: none;
-}
-
-.violation-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 20px;
-    cursor: pointer;
-}
-
-.violation-title {
-    font-size: 14px;
-    color: #e0e0e0;
-}
-
-.violation-points {
-    font-size: 14px;
-    font-weight: bold;
-}
-
-.points-high { color: #ff3b30; }
-.points-medium { color: #ff9500; }
-.points-low { color: #0a84ff; }
-
-/* صندوق التعديل المخفي */
-.editor-container {
-    display: none;
-    padding: 0 20px 20px 20px;
-    background-color: #222;
-}
-
-.violation-item:hover .editor-container,
-.violation-item:focus-within .editor-container {
-    display: block;
-}
-
-.violation-item:hover, .violation-item:focus-within {
-    background-color: #222;
-}
-
 textarea {
     width: 100%;
     background-color: #121212;
@@ -133,9 +7,9 @@ textarea {
     padding: 12px;
     font-family: inherit;
     font-size: 14px;
-    line-height: 1.6;
+    line-height: 1.6; /* تباعد الأسطر لقراءة أسهل */
     resize: vertical;
-    min-height: 150px;
+    min-height: 150px; /* تكبير المربع ليظهر النص كامل */
     margin-bottom: 10px;
     box-sizing: border-box;
 }
@@ -144,26 +18,4 @@ textarea:focus {
     outline: none;
     border-color: #555;
     background-color: #1a1a1a;
-}
-
-.copy-btn {
-    background-color: #333;
-    color: #fff;
-    border: 1px solid #555;
-    padding: 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 13px;
-    transition: 0.2s;
-    width: 100%;
-    font-weight: bold;
-}
-
-.copy-btn:hover {
-    background-color: #444;
-}
-
-.copy-btn.success {
-    background-color: #28a745;
-    border-color: #28a745;
 }

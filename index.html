@@ -4,13 +4,154 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لائحة المخالفات</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        /* إعدادات عامة */
+        body {
+            background-color: #000000;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .dashboard {
+            display: flex;
+            gap: 30px;
+            width: 100%;
+            max-width: 1400px;
+        }
+
+        .column {
+            flex: 1;
+        }
+
+        /* تنسيق العناوين والنقاط الملونة */
+        h3 {
+            display: flex;
+            align-items: center;
+            font-size: 16px;
+            margin-bottom: 15px;
+            direction: ltr; /* لعكس اتجاه النقطة والكلمة كما في الصورة */
+            justify-content: flex-end;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-left: 8px;
+        }
+
+        .dot-high { background-color: #ff3b30; }
+        .dot-medium { background-color: #ff9500; }
+        .dot-low { background-color: #0a84ff; }
+
+        /* تنسيق قائمة المخالفات */
+        .violation-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            background-color: #1a1a1a;
+            border-radius: 8px;
+            border: 1px solid #333;
+            overflow: hidden;
+        }
+
+        .violation-item {
+            border-bottom: 1px solid #333;
+            transition: background-color 0.2s ease;
+        }
+
+        .violation-item:last-child {
+            border-bottom: none;
+        }
+
+        .violation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            cursor: pointer;
+        }
+
+        .violation-title {
+            font-size: 14px;
+            color: #e0e0e0;
+        }
+
+        .violation-points {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .points-high { color: #ff3b30; }
+        .points-medium { color: #ff9500; }
+        .points-low { color: #0a84ff; }
+
+        /* صندوق التعديل المخفي (يظهر عند التمرير أو عند النقر داخله) */
+        .editor-container {
+            display: none;
+            padding: 0 20px 20px 20px;
+            background-color: #222;
+        }
+
+        /* سحر الـ CSS: إظهار الصندوق عند مرور الماوس، وبقاؤه مفتوحاً إذا كان المؤشر داخل مربع النص */
+        .violation-item:hover .editor-container,
+        .violation-item:focus-within .editor-container {
+            display: block;
+        }
+
+        .violation-item:hover, .violation-item:focus-within {
+            background-color: #222;
+        }
+
+        textarea {
+            width: 100%;
+            background-color: #121212;
+            color: #fff;
+            border: 1px solid #444;
+            border-radius: 5px;
+            padding: 10px;
+            font-family: inherit;
+            font-size: 13px;
+            resize: vertical;
+            min-height: 80px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #555;
+        }
+
+        .copy-btn {
+            background-color: #333;
+            color: #fff;
+            border: 1px solid #555;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: 0.2s;
+            width: 100%;
+        }
+
+        .copy-btn:hover {
+            background-color: #444;
+        }
+
+        .copy-btn.success {
+            background-color: #28a745;
+            border-color: #28a745;
+        }
+    </style>
 </head>
 <body>
-
-    <div class="header-actions">
-        <button class="reset-btn" onclick="resetDatabase()">إعادة ضبط النصوص للافتراضي</button>
-    </div>
 
     <div class="dashboard">
         <!-- عمود المخالفات العالية -->
@@ -41,6 +182,89 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        // بيانات المخالفات مقسمة حسب الفئة
+        const violationsData = {
+            high: [
+                { title: "إغلاق المعرض والتسبب في تعطيل المبيعات", points: "-15" },
+                { title: "تلاعب في أوقات البريك", points: "-15" },
+                { title: "تلاعب في ساعات العمل", points: "-15" },
+                { title: "عدم تسليم العميل فاتورة مشتريات", points: "-15" },
+                { title: "غياب بدون عذر", points: "-15" }
+            ],
+            medium: [
+                { title: "إهمال الإبلاغ عن أعطال الأجهزة والأنظمة", points: "-7" },
+                { title: "الخروج للبريك بدون تسجيل إذن", points: "-7" },
+                { title: "تجمعات خلال ساعات العمل", points: "-7" },
+                { title: "خروج أكثر من موظف في نفس وقت الاستراحة", points: "-7" },
+                { title: "عدم الالتزام بمعايير خدمة العملاء", points: "-7" },
+                { title: "مخالفة قواعد السلوك والانضباط المهني في مكان العمل", points: "-7" },
+                { title: "وجود الموظف في غير مكان العمل أثناء ساعات العمل", points: "-7" }
+            ],
+            low: [
+                { title: "الإخلال بالمظهر العام للمعرض", points: "-3" },
+                { title: "التأخر عن مواعيد الدوام الرسمية", points: "-3" },
+                { title: "التواجد في المستودع خارج وقت البريك دون مقتضى حاجة", points: "-3" },
+                { title: "تجاوز الوقت المسموح به", points: "-3" },
+                { title: "عدم اكمال نوبة العمل", points: "-3" },
+                { title: "عدم الالتزام بالزي الرسمي أو عدم ارتداء الشال الخاص", points: "-3" },
+                { title: "عدم الالتزام في تنفيذ المهام اليومية", points: "-3" },
+                { title: "عدم الالتزام في مهام الاستقطاب", points: "-3" }
+            ]
+        };
+
+        // دالة لإنشاء النص الجاهز بناءً على عنوان المخالفة
+        function getTemplate(title) {
+            return `المكرم/ [اسم الموظف]،\nبناءً على ما تم رصده، نود إفادتكم بوقوع مخالفة ( ${title} ).\nنأمل منكم الالتزام بالأنظمة والتعليمات تفادياً لتطبيق لائحة الجزاءات.`;
+        }
+
+        // دالة لطباعة القوائم في الـ HTML
+        function renderList(category, elementId, pointsClass) {
+            const listElement = document.getElementById(elementId);
+            
+            violationsData[category].forEach(violation => {
+                const li = document.createElement('li');
+                li.className = 'violation-item';
+                
+                li.innerHTML = `
+                    <div class="violation-header">
+                        <span class="violation-title">${violation.title}</span>
+                        <span class="violation-points ${pointsClass}">${violation.points}</span>
+                    </div>
+                    <div class="editor-container">
+                        <textarea spellcheck="false">${getTemplate(violation.title)}</textarea>
+                        <button class="copy-btn" onclick="copyText(this)">نسخ المخالفة</button>
+                    </div>
+                `;
+                listElement.appendChild(li);
+            });
+        }
+
+        // دالة نسخ النص
+        function copyText(button) {
+            // جلب الـ textarea المرتبط بنفس الزر
+            const textarea = button.previousElementSibling;
+            const textToCopy = textarea.value;
+
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                // تغيير شكل الزر مؤقتاً للتأكيد على النسخ
+                const originalText = button.innerText;
+                button.innerText = "تم النسخ بنجاح ✔";
+                button.classList.add("success");
+                
+                setTimeout(() => {
+                    button.innerText = originalText;
+                    button.classList.remove("success");
+                }, 2000);
+            });
+        }
+
+        // تشغيل الدوال عند تحميل الصفحة
+        window.onload = () => {
+            renderList('high', 'list-high', 'points-high');
+            renderList('medium', 'list-medium', 'points-medium');
+            renderList('low', 'list-low', 'points-low');
+        };
+    </script>
 </body>
 </html>

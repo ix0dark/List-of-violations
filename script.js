@@ -1,9 +1,9 @@
-// قالب النص الجاهز
+// القالب الأساسي للنص إذا لم يكن هناك نص محفوظ مسبقاً
 function getInitialTemplate(title) {
     return `المكرم/ [اسم الموظف]،\n\nبناءً على ما تم رصده، نود إفادتكم بوقوع مخالفة ( ${title} ).\nنأمل منكم الالتزام بالأنظمة والتعليمات تفادياً لتطبيق لائحة الجزاءات.\n\nملاحظات إضافية: `;
 }
 
-// البيانات الأساسية
+// البيانات الافتراضية للمخالفات
 const defaultViolationsData = {
     high: [
         { title: "إغلاق المعرض والتسبب في تعطيل المبيعات", points: "-15" },
@@ -33,16 +33,18 @@ const defaultViolationsData = {
     ]
 };
 
+// تهيئة قاعدة البيانات المحلية
 let dbData = {};
 
-// دالة تهيئة وبناء قاعدة البيانات المحلية
 function initDatabase() {
     const storedData = localStorage.getItem('violationsDB');
     
     if (storedData) {
+        // إذا كانت البيانات موجودة مسبقاً، اجلبها
         dbData = JSON.parse(storedData);
     } else {
-        dbData = JSON.parse(JSON.stringify(defaultViolationsData));
+        // إذا كانت أول مرة، قم ببناء البيانات مع النصوص الافتراضية واحفظها
+        dbData = JSON.parse(JSON.stringify(defaultViolationsData)); // نسخة من البيانات
         for (const category in dbData) {
             dbData[category].forEach(violation => {
                 violation.text = getInitialTemplate(violation.title);
@@ -52,24 +54,16 @@ function initDatabase() {
     }
 }
 
-// تحديث وحفظ النص عند الكتابة
+// تحديث النص في قاعدة البيانات عند الكتابة في المربع
 function updateText(category, index, newText) {
     dbData[category][index].text = newText;
     localStorage.setItem('violationsDB', JSON.stringify(dbData));
 }
 
-// دالة لإعادة ضبط النصوص في حال أخطأ المستخدم
-function resetDatabase() {
-    if(confirm("هل أنت متأكد أنك تريد مسح جميع تعديلاتك والعودة للنصوص الافتراضية؟")) {
-        localStorage.removeItem('violationsDB');
-        location.reload(); // تحديث الصفحة
-    }
-}
-
-// دالة الطباعة في الصفحة
+// دالة لطباعة القوائم في الـ HTML
 function renderList(category, elementId, pointsClass) {
     const listElement = document.getElementById(elementId);
-    listElement.innerHTML = ''; 
+    listElement.innerHTML = ''; // تنظيف القائمة قبل الإضافة
     
     dbData[category].forEach((violation, index) => {
         const li = document.createElement('li');
@@ -81,6 +75,7 @@ function renderList(category, elementId, pointsClass) {
                 <span class="violation-points ${pointsClass}">${violation.points}</span>
             </div>
             <div class="editor-container">
+                <!-- دالة oninput تحفظ النص مباشرة أثناء الكتابة -->
                 <textarea spellcheck="false" oninput="updateText('${category}', ${index}, this.value)">${violation.text}</textarea>
                 <button class="copy-btn" onclick="copyText(this)">نسخ المخالفة</button>
             </div>
@@ -89,7 +84,7 @@ function renderList(category, elementId, pointsClass) {
     });
 }
 
-// نسخ النص
+// دالة نسخ النص
 function copyText(button) {
     const textarea = button.previousElementSibling;
     const textToCopy = textarea.value;
@@ -106,7 +101,7 @@ function copyText(button) {
     });
 }
 
-// التشغيل عند فتح الصفحة
+// تشغيل الدوال عند تحميل الصفحة
 window.onload = () => {
     initDatabase();
     renderList('high', 'list-high', 'points-high');
