@@ -1,9 +1,9 @@
-// القالب الأساسي للنص إذا لم يكن هناك نص محفوظ مسبقاً
+// قالب النص الجاهز
 function getInitialTemplate(title) {
     return `المكرم/ [اسم الموظف]،\n\nبناءً على ما تم رصده، نود إفادتكم بوقوع مخالفة ( ${title} ).\nنأمل منكم الالتزام بالأنظمة والتعليمات تفادياً لتطبيق لائحة الجزاءات.\n\nملاحظات إضافية: `;
 }
 
-// البيانات الافتراضية للمخالفات
+// البيانات الأساسية
 const defaultViolationsData = {
     high: [
         { title: "إغلاق المعرض والتسبب في تعطيل المبيعات", points: "-15" },
@@ -33,65 +33,119 @@ const defaultViolationsData = {
     ]
 };
 
-// تهيئة قاعدة البيانات المحلية
 let dbData = {};
 
+// تهيئة قاعدة البيانات (استخدمنا مفتاح جديد v2 عشان ما يتداخل مع القديم)
 function initDatabase() {
-    const storedData = localStorage.getItem('violationsDB');
+    const storedData = localStorage.getItem('violationsDB_v2');
     
     if (storedData) {
-        // إذا كانت البيانات موجودة مسبقاً، اجلبها
         dbData = JSON.parse(storedData);
     } else {
-        // إذا كانت أول مرة، قم ببناء البيانات مع النصوص الافتراضية واحفظها
-        dbData = JSON.parse(JSON.stringify(defaultViolationsData)); // نسخة من البيانات
+        dbData = JSON.parse(JSON.stringify(defaultViolationsData));
         for (const category in dbData) {
             dbData[category].forEach(violation => {
-                violation.text = getInitialTemplate(violation.title);
+                // حولنا الملاحظة لمصفوفة عشان تقبل أكثر من مربع
+                violation.notes = [getInitialTemplate(violation.title)];
             });
         }
-        localStorage.setItem('violationsDB', JSON.stringify(dbData));
+        saveToDB();
     }
 }
 
-// تحديث النص في قاعدة البيانات عند الكتابة في المربع
-function updateText(category, index, newText) {
-    dbData[category][index].text = newText;
-    localStorage.setItem('violationsDB', JSON.stringify(dbData));
+function saveToDB() {
+    localStorage.setItem('violationsDB_v2', JSON.stringify(dbData));
 }
 
-// دالة لطباعة القوائم في الـ HTML
+// تحديث النص عند الكتابة
+function updateText(category, vIndex, nIndex, newText) {
+    dbData[category][vIndex].notes[nIndex] = newText;
+    saveToDB();
+}
+
+// إضافة ملاحظة جديدة (مربع جديد)
+function addNote(category, vIndex) {
+    const title = dbData[category][vIndex].title;
+    dbData[category][vIndex].notes.push(getInitialTemplate(title));
+    saveToDB();
+    renderAll();
+}
+
+// استرجاع ملاحظة محددة للنص الافتراضي
+function restoreNote(category, vIndex, nIndex) {
+    if(confirm("هل تريد استرجاع النص الافتراضي لهذه الملاحظة؟")) {
+        const title = dbData[category][vIndex].title;
+        dbData[category][vIndex].notes[nIndex] = getInitialTemplate(title);
+        saveToDB();
+        renderAll();
+    }
+}
+
+// حذف ملاحظة إضافية
+function deleteNote(category, vIndex, nIndex) {
+    if(confirm("هل أنت متأكد من حذف هذا المربع بالكامل؟")) {
+        dbData[category][vIndex].notes.splice(nIndex, 1);
+        saveToDB();
+        renderAll();
+    }
+}
+
+// إعادة ضبط كامل النظام
+function resetDatabase() {
+    if(confirm("هل أنت متأكد أنك تريد مسح جميع التعديلات والعودة للوضع الافتراضي؟")) {
+        localStorage.removeItem('violationsDB_v2');
+        location.reload();
+    }
+}
+
+// توليد القوائم
 function renderList(category, elementId, pointsClass) {
     const listElement = document.getElementById(elementId);
-    listElement.innerHTML = ''; // تنظيف القائمة قبل الإضافة
+    listElement.innerHTML = ''; 
     
-    dbData[category].forEach((violation, index) => {
+    dbData[category].forEach((violation, vIndex) => {
         const li = document.createElement('li');
         li.className = 'violation-item';
         
+        // بناء مربعات الملاحظات
+        let notesHTML = '';
+        violation.notes.forEach((note, nIndex) => {
+            notesHTML += `
+                <div class="note-box">
+                    <textarea spellcheck="false" oninput="updateText('${category}', ${vIndex}, ${nIndex}, this.value)">${note}</textarea>
+                    <div class="note-actions">
+                        <button class="action-btn btn-copy" onclick="copyNote(this)">نسخ</button>
+                        <button class="action-btn btn-restore" onclick="restoreNote('${category}', ${vIndex}, ${nIndex})">استرجاع</button>
+                        ${nIndex > 0 ? `<button class="action-btn btn-delete" onclick="deleteNote('${category}', ${vIndex}, ${nIndex})">حذف</button>` : ''}
+                    </div>
+                </div>
+            `;
+        });
+        
         li.innerHTML = `
             <div class="violation-header">
-                <span class="violation-title">${violation.title}</span>
+                <div class="header-info">
+                    <button class="add-btn" title="إضافة ملاحظة جديدة" onclick="addNote('${category}', ${vIndex})">+</button>
+                    <span class="violation-title">${violation.title}</span>
+                </div>
                 <span class="violation-points ${pointsClass}">${violation.points}</span>
             </div>
             <div class="editor-container">
-                <!-- دالة oninput تحفظ النص مباشرة أثناء الكتابة -->
-                <textarea spellcheck="false" oninput="updateText('${category}', ${index}, this.value)">${violation.text}</textarea>
-                <button class="copy-btn" onclick="copyText(this)">نسخ المخالفة</button>
+                ${notesHTML}
             </div>
         `;
         listElement.appendChild(li);
     });
 }
 
-// دالة نسخ النص
-function copyText(button) {
-    const textarea = button.previousElementSibling;
+// نسخ النص للمربع المحدد
+function copyNote(button) {
+    const textarea = button.parentElement.previousElementSibling;
     const textToCopy = textarea.value;
 
     navigator.clipboard.writeText(textToCopy).then(() => {
         const originalText = button.innerText;
-        button.innerText = "تم النسخ بنجاح ✔";
+        button.innerText = "تم ✔";
         button.classList.add("success");
         
         setTimeout(() => {
@@ -101,10 +155,14 @@ function copyText(button) {
     });
 }
 
-// تشغيل الدوال عند تحميل الصفحة
-window.onload = () => {
-    initDatabase();
+function renderAll() {
     renderList('high', 'list-high', 'points-high');
     renderList('medium', 'list-medium', 'points-medium');
     renderList('low', 'list-low', 'points-low');
+}
+
+// التشغيل
+window.onload = () => {
+    initDatabase();
+    renderAll();
 };
