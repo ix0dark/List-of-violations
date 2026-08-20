@@ -28,7 +28,9 @@ body {
     transition: 0.3s;
 }
 
-.reset-btn:hover { background-color: #cc2a22; }
+.reset-btn:hover {
+    background-color: #cc2a22;
+}
 
 .dashboard {
     display: flex;
@@ -37,8 +39,11 @@ body {
     max-width: 1400px;
 }
 
-.column { flex: 1; }
+.column {
+    flex: 1;
+}
 
+/* تنسيق العناوين والنقاط الملونة */
 h3 {
     display: flex;
     align-items: center;
@@ -61,6 +66,7 @@ h3 {
 .dot-medium { background-color: #ff9500; }
 .dot-low { background-color: #0a84ff; }
 
+/* تنسيق قائمة المخالفات */
 .violation-list {
     list-style: none;
     padding: 0;
@@ -76,19 +82,16 @@ h3 {
     transition: background-color 0.2s ease;
 }
 
-.violation-item:last-child { border-bottom: none; }
+.violation-item:last-child {
+    border-bottom: none;
+}
 
 .violation-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 15px 20px;
-}
-
-.header-info {
-    display: flex;
-    align-items: center;
-    gap: 15px;
+    cursor: pointer;
 }
 
 .violation-title {
@@ -105,26 +108,7 @@ h3 {
 .points-medium { color: #ff9500; }
 .points-low { color: #0a84ff; }
 
-/* زر إضافة ملاحظة جديدة */
-.add-btn {
-    background-color: #28a745;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 26px;
-    height: 26px;
-    font-size: 18px;
-    line-height: 1;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: 0.2s;
-}
-
-.add-btn:hover { background-color: #218838; transform: scale(1.1); }
-
-/* حاوية الملاحظات المخفية */
+/* صندوق التعديل المخفي */
 .editor-container {
     display: none;
     padding: 0 20px 20px 20px;
@@ -140,58 +124,46 @@ h3 {
     background-color: #222;
 }
 
-/* تصميم المربعات المصغرة لكل ملاحظة */
-.note-box {
-    background-color: #121212;
-    border: 1px solid #444;
-    border-radius: 8px;
-    padding: 15px;
-    margin-top: 15px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-}
-
 textarea {
     width: 100%;
-    background-color: transparent;
+    background-color: #121212;
     color: #fff;
-    border: none;
+    border: 1px solid #444;
+    border-radius: 5px;
+    padding: 12px;
     font-family: inherit;
-    font-size: 13px;
+    font-size: 14px;
     line-height: 1.6;
     resize: vertical;
-    min-height: 100px;
+    min-height: 150px;
+    margin-bottom: 10px;
     box-sizing: border-box;
 }
 
-textarea:focus { outline: none; }
-
-/* أزرار التحكم داخل مربع الملاحظة */
-.note-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
-    border-top: 1px solid #333;
-    padding-top: 10px;
+textarea:focus {
+    outline: none;
+    border-color: #555;
+    background-color: #1a1a1a;
 }
 
-.action-btn {
-    flex: 1;
-    padding: 8px;
-    border: none;
+.copy-btn {
+    background-color: #333;
+    color: #fff;
+    border: 1px solid #555;
+    padding: 10px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 12px;
-    font-weight: bold;
-    color: white;
+    font-size: 13px;
     transition: 0.2s;
+    width: 100%;
+    font-weight: bold;
 }
 
-.btn-copy { background-color: #007bff; }
-.btn-copy:hover { background-color: #0056b3; }
-.btn-copy.success { background-color: #28a745; }
+.copy-btn:hover {
+    background-color: #444;
+}
 
-.btn-restore { background-color: #ff9500; color: #000; }
-.btn-restore:hover { background-color: #e08300; }
-
-.btn-delete { background-color: #ff3b30; }
-.btn-delete:hover { background-color: #cc2a22; }
+.copy-btn.success {
+    background-color: #28a745;
+    border-color: #28a745;
+}
